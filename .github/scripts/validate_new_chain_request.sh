@@ -78,7 +78,7 @@ response=$(curl "$rpc_url" --location --header \
                           "id": 5413
 }')
 
-
+echo $response
 if jq -e . >/dev/null 2>&1 <<< "$response"; then
   chain_id=$(( $(echo "$response" | jq -r '.result') ))
 else
@@ -87,7 +87,7 @@ else
     exit 1
 fi
 
-
+echo "Extracted chain id: $chain_id. Checking if the factory is already deployed..."
 factory_code=$(curl "$rpc_url" --location --header \
   'Content-Type: application/json' --data '{
                 "jsonrpc": "2.0",
@@ -95,11 +95,10 @@ factory_code=$(curl "$rpc_url" --location --header \
                 "params": ["'"$FACTORY_ADDRESS"'", "latest"],
                 "id": "0x5afe"
             }')
-
+echo $factory_code
 if jq -e . >/dev/null 2>&1 <<< "$factory_code"; then
   factory_code=$(jq -r '.result' <<< "$factory_code")
-
-  if [ "$factory_code" != "0x" ]; then
+  if [ "$factory_code" != "0x" ] && [ "$factory_code" != "" ]; then
     echo "COMMENT_OUTPUT=$FACTORY_ALREADY_DEPLOYED_ERR_MSG" >> $GITHUB_ENV
     exit 1
   fi
